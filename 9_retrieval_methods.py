@@ -1,12 +1,14 @@
 from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
-from dotenv import load_dotenv
-
-load_dotenv()
+from langchain_huggingface import HuggingFaceEmbeddings
 
 # Setup
 persistent_directory = "db/chroma_db"
-embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+
+embedding_model = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True}
+)
 
 db = Chroma(
     persist_directory=persistent_directory,
@@ -17,17 +19,21 @@ db = Chroma(
 # Query to test
 query = "How much did Microsoft pay to acquire GitHub?"
 # query = "How do you plant tomatoes in a garden?"
+
 print(f"Query: {query}\n")
 
 # ──────────────────────────────────────────────────────────────────
 # METHOD 1: Basic Similarity Search
-# Returns the top k most similar documents
 # ──────────────────────────────────────────────────────────────────
 
 print("=== METHOD 1: Similarity Search (k=3) ===")
-retriever = db.as_retriever(search_kwargs={"k": 3})
+
+retriever = db.as_retriever(
+    search_kwargs={"k": 3}
+)
 
 docs = retriever.invoke(query)
+
 print(f"Retrieved {len(docs)} documents:\n")
 
 for i, doc in enumerate(docs, 1):
