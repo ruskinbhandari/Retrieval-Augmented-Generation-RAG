@@ -1,30 +1,29 @@
-from langchain_openai import ChatOpenAI
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
 # Initialize the LLM
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+llm = ChatOllama(
+    model="qwen2.5:3b",
+    temperature=0
+)
 
-# Tesla text to chunk
-tesla_text = """Tesla's Q3 Results
-Tesla reported record revenue of $25.2B in Q3 2024.
-The company exceeded analyst expectations by 15%.
-Revenue growth was driven by strong vehicle deliveries.
+# Load documents dynamically
+loader = DirectoryLoader(
+    "docs",
+    glob="**/*.txt",
+    loader_cls=TextLoader
+)
 
-Model Y Performance  
-The Model Y became the best-selling vehicle globally, with 350,000 units sold.
-Customer satisfaction ratings reached an all-time high of 96%.
-Model Y now represents 60% of Tesla's total vehicle sales.
+documents = loader.load()
 
-Production Challenges
-Supply chain issues caused a 12% increase in production costs.
-Tesla is working to diversify its supplier base.
-New manufacturing techniques are being implemented to reduce costs."""
+# Process each document
+for document in documents:
 
-# Create the prompt
-prompt = f"""
+    prompt = f"""
 You are a text chunking expert. Split this text into logical chunks.
 
 Rules:
@@ -34,31 +33,33 @@ Rules:
 - Put "<<<SPLIT>>>" between chunks
 
 Text:
-{tesla_text}
+{document.page_content}
 
 Return the text with <<<SPLIT>>> markers where you want to split:
 """
 
-# Get AI response
-print("🤖 Asking AI to chunk the text...")
-response = llm.invoke(prompt)
-marked_text = response.content
+    print("🤖 Asking AI to chunk the document...")
 
-# Split the text at the markers
-chunks = marked_text.split("<<<SPLIT>>>")
+    response = llm.invoke(prompt)
+    marked_text = response.content
 
-# Clean up the chunks (remove extra whitespace)
-clean_chunks = []
-for chunk in chunks:
-    cleaned = chunk.strip()
-    if cleaned:  # Only keep non-empty chunks
-        clean_chunks.append(cleaned)
+    # Split the text at the markers
+    chunks = marked_text.split("<<<SPLIT>>>")
 
-# Show results
-print("\n🎯 AGENTIC CHUNKING RESULTS:")
-print("=" * 50)
+    # Clean up the chunks
+    clean_chunks = []
 
-for i, chunk in enumerate(clean_chunks, 1):
-    print(f"Chunk {i}: ({len(chunk)} chars)")
-    print(f'"{chunk}"')
-    print()
+    for chunk in chunks:
+        cleaned = chunk.strip()
+
+        if cleaned:
+            clean_chunks.append(cleaned)
+
+    # Show results
+    print("\n🎯 AGENTIC CHUNKING RESULTS:")
+    print("=" * 50)
+
+    for i, chunk in enumerate(clean_chunks, 1):
+        print(f"Chunk {i}: ({len(chunk)} chars)")
+        print(f'"{chunk}"')
+        print()
