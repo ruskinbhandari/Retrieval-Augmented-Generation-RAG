@@ -1,0 +1,6 @@
+[submodule "docs/MKDocs/Power Item Tracker Mkdocs"]
+	path = docs/MKDocs/Power Item Tracker Mkdocs
+	url = git@gitlab.wlink.com.np:ruskin.bhandari/power-item-tracker-mkdocs.git
+[submodule "docs/MKDocs/Inventory Admin User Guide"]
+	path = docs/MKDocs/Inventory Admin User Guide
+	url = https://gitlab.wlink.com.np/bikram.dangol2/inventory-admin-user-guide.git
