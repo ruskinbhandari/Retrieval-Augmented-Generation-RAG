@@ -3,18 +3,23 @@ from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
 
 # Connect to your document database
-persistent_directory = "db/chroma_db"
+persistent_directory = str(
+    Path(__file__).resolve().parent / "db" / "chroma_db"
+)
 embeddings = HuggingFaceEmbeddings(
     model_name="BAAI/bge-small-en-v1.5",
     model_kwargs={"device": "cpu"},
     encode_kwargs={"normalize_embeddings": True}
     
-)db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
+)
+db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
+print("Total documents in Chroma:", db._collection.count())
 
 # Set up AI model
 model = ChatOllama(
@@ -85,7 +90,11 @@ def start_chat():
     print("Ask me questions! Type 'quit' to exit.")
     
     while True:
-        question = input("\nYour question: ")
+        question = input("\nYour question: ").strip()
+
+        if not question:
+            print("Please enter a question.")
+            continue
         
         if question.lower() == 'quit':
             print("Goodbye!")
